@@ -1,12 +1,13 @@
-﻿using System;
+using System;
 
 namespace ProductHierarchy
 {
-    // Інтерфейс "Товар"
-    public interface IProduct
+    // Інтерфейс "Товар", який успадковує IComparable для сортування за ціною
+    public interface IProduct : IComparable<IProduct>
     {
         void DisplayInfo();
         bool IsExpired();
+        decimal GetPrice(); // Метод для отримання ціни — для порівняння
     }
 
     // Клас "Продукт"
@@ -30,10 +31,11 @@ namespace ProductHierarchy
             Console.WriteLine($"Продукт: {Name}, Ціна: {Price}, Дата виробництва: {ManufactureDate.ToShortDateString()}, Строк придатності: {ExpiryDate.ToShortDateString()}");
         }
 
-        public bool IsExpired()
-        {
-            return DateTime.Now > ExpiryDate;
-        }
+        public bool IsExpired() => DateTime.Now > ExpiryDate;
+
+        public decimal GetPrice() => Price;
+
+        public int CompareTo(IProduct other) => Price.CompareTo(other.GetPrice());
     }
 
     // Клас "Партія"
@@ -59,10 +61,11 @@ namespace ProductHierarchy
             Console.WriteLine($"Партія: {Name}, Ціна: {Price}, Кількість: {Quantity}, Дата виробництва: {ManufactureDate.ToShortDateString()}, Строк придатності: {ExpiryDate.ToShortDateString()}");
         }
 
-        public bool IsExpired()
-        {
-            return DateTime.Now > ExpiryDate;
-        }
+        public bool IsExpired() => DateTime.Now > ExpiryDate;
+
+        public decimal GetPrice() => Price;
+
+        public int CompareTo(IProduct other) => Price.CompareTo(other.GetPrice());
     }
 
     // Клас "Комплект"
@@ -84,10 +87,11 @@ namespace ProductHierarchy
             Console.WriteLine($"Комплект: {Name}, Ціна: {Price}, Продукти: {string.Join(", ", ProductNames)}");
         }
 
-        public bool IsExpired()
-        {
-            return false; // Комплект не має дати придатності, тільки продукти.
-        }
+        public bool IsExpired() => false;
+
+        public decimal GetPrice() => Price;
+
+        public int CompareTo(IProduct other) => Price.CompareTo(other.GetPrice());
     }
 
     class Program
@@ -102,21 +106,30 @@ namespace ProductHierarchy
                 new Set("Комплект для пікніка", 200.00m, new string[] { "Ніж", "Тарілка", "Ковдра" })
             };
 
-            // Виводимо інформацію про всі товари
+            // Вивід початкового списку
+            Console.WriteLine("Всі товари:");
             foreach (var product in products)
             {
                 product.DisplayInfo();
                 Console.WriteLine($"Прострочено: {product.IsExpired()}\n");
             }
 
-            // Пошук прострочених товарів
-            Console.WriteLine("Прострочені товари:");
+            // Сортуємо за ціною (від дешевих до дорогих)
+            Array.Sort(products);
+
+            // Вивід після сортування
+            Console.WriteLine("\nТовари після сортування за ціною:");
+            foreach (var product in products)
+            {
+                product.DisplayInfo();
+            }
+
+            // Виводимо тільки прострочені товари
+            Console.WriteLine("\nПрострочені товари:");
             foreach (var product in products)
             {
                 if (product.IsExpired())
-                {
                     product.DisplayInfo();
-                }
             }
         }
     }
