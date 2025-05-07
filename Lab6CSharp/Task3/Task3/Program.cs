@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Linq;
 
-// Власний виняток для неправильних оцінок
-class InvalidGradeException : Exception
-{
-    public InvalidGradeException(string message) : base(message) { }
-}
-
 class Program
 {
     static void Main()
     {
         try
         {
+            // Запит на вибір способу реалізації
             Console.WriteLine("Як ви хочете реалізувати задачу?");
             Console.WriteLine("1 - Використовувати структури");
             Console.WriteLine("2 - Використовувати кортежі");
@@ -27,135 +22,157 @@ class Program
             switch (choice)
             {
                 case 1:
+                    // Використовуємо структури
                     RunWithStructures();
                     break;
                 case 2:
+                    // Використовуємо кортежі
                     RunWithTuples();
                     break;
                 case 3:
+                    // Використовуємо записи
                     RunWithRecords();
+                    break;
+                default:
+                    Console.WriteLine("Невірний вибір.");
                     break;
             }
         }
-        catch (OverflowException)
+        catch (OverflowException ex)
         {
-            Console.WriteLine("Занадто велике число введено. Спробуйте знову.");
-        }
-        catch (InvalidGradeException ex)
-        {
-            Console.WriteLine($"Помилка в оцінці: {ex.Message}");
+            Console.WriteLine($"Помилка переповнення: {ex.Message}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Невідома помилка: {ex.Message}");
+            Console.WriteLine($"Сталася помилка: {ex.Message}");
         }
     }
 
+    // Реалізація через структури
     static void RunWithStructures()
     {
-        Console.WriteLine("Вибір: Структури");
-
-        SchoolboyStruct[] schoolboys = new SchoolboyStruct[]
+        try
         {
-            new SchoolboyStruct("Іван Іванов", "10-А", "123456789", 5, 4, 2, 4),
-            new SchoolboyStruct("Марія Петрівна", "10-Б", "987654321", 3, 4, 4, 4),
-            new SchoolboyStruct("Олег Олегович", "9-А", "555555555", 2, 3, 5, 5)
-        };
+            Console.WriteLine("Вибір: Структури");
 
-        // Перевірка оцінок
-        foreach (var s in schoolboys)
-        {
-            ValidateGrades(s.MathGrade, s.PhysicsGrade, s.RussianGrade, s.LiteratureGrade);
+            // Введення масиву школярів
+            SchoolboyStruct[] schoolboys = new SchoolboyStruct[]
+            {
+                new SchoolboyStruct("Іван Іванов", "10-А", "123456789", 5, 4, 2, 4),
+                new SchoolboyStruct("Марія Петрівна", "10-Б", "987654321", 3, 4, 4, 4),
+                new SchoolboyStruct("Олег Олегович", "9-А", "555555555", 2, 3, 5, 5)
+            };
+
+            // Видалення школярів з оцінкою 2 хоча б по одному предмету
+            schoolboys = schoolboys.Where(s => s.MathGrade != 2 && s.PhysicsGrade != 2 && s.RussianGrade != 2 && s.LiteratureGrade != 2).ToArray();
+
+            // Додавання нового елемента на початок масиву
+            Array.Resize(ref schoolboys, schoolboys.Length + 1); // Збільшуємо розмір масиву на 1
+            schoolboys[0] = new SchoolboyStruct("Анатолій Антонов", "11-А", "123123123", 4, 4, 3, 5);
+
+            // Виведення результатів
+            Console.WriteLine("Школярі після модифікації:");
+            foreach (var schoolboy in schoolboys)
+            {
+                Console.WriteLine($"Прізвище, ім'я, по батькові: {schoolboy.FullName}, Клас: {schoolboy.Class}, Телефон: {schoolboy.PhoneNumber}");
+                Console.WriteLine($"Оцінки: Математика: {schoolboy.MathGrade}, Фізика: {schoolboy.PhysicsGrade}, Російська мова: {schoolboy.RussianGrade}, Література: {schoolboy.LiteratureGrade}");
+                Console.WriteLine();
+            }
         }
-
-        // Видалення з оцінкою 2
-        schoolboys = schoolboys.Where(s => s.MathGrade != 2 && s.PhysicsGrade != 2 && s.RussianGrade != 2 && s.LiteratureGrade != 2).ToArray();
-
-        // Новий школяр
-        var newStudent = new SchoolboyStruct("Анатолій Антонов", "11-А", "123123123", 4, 4, 3, 5);
-        ValidateGrades(newStudent.MathGrade, newStudent.PhysicsGrade, newStudent.RussianGrade, newStudent.LiteratureGrade);
-
-        Array.Resize(ref schoolboys, schoolboys.Length + 1);
-        for (int i = schoolboys.Length - 1; i > 0; i--)
-            schoolboys[i] = schoolboys[i - 1];
-        schoolboys[0] = newStudent;
-
-        // Вивід
-        Console.WriteLine("Школярі після модифікації:");
-        foreach (var s in schoolboys)
+        catch (OverflowException ex)
         {
-            Console.WriteLine($"{s.FullName}, {s.Class}, {s.PhoneNumber}, Оцінки: {s.MathGrade}, {s.PhysicsGrade}, {s.RussianGrade}, {s.LiteratureGrade}");
+            Console.WriteLine($"Помилка переповнення в структурах: {ex.Message}");
         }
-    }
-
-    static void ValidateGrades(params int[] grades)
-    {
-        foreach (var grade in grades)
+        catch (Exception ex)
         {
-            if (grade < 1 || grade > 5)
-                throw new InvalidGradeException($"Оцінка {grade} не входить в діапазон 1-5.");
+            Console.WriteLine($"Помилка при роботі зі структурами: {ex.Message}");
         }
     }
 
+    // Реалізація через кортежі
     static void RunWithTuples()
     {
-        Console.WriteLine("Вибір: Кортежі");
-
-        var schoolboys = new[]
+        try
         {
-            ("Іван Іванов", "10-А", "123456789", 5, 4, 2, 4),
-            ("Марія Петрівна", "10-Б", "987654321", 3, 4, 4, 4),
-            ("Олег Олегович", "9-А", "555555555", 2, 3, 5, 5)
-        };
+            Console.WriteLine("Вибір: Кортежі");
 
-        foreach (var s in schoolboys)
-        {
-            ValidateGrades(s.Item4, s.Item5, s.Item6, s.Item7);
+            // Введення масиву школярів у вигляді кортежів
+            var schoolboys = new (string FullName, string Class, string PhoneNumber, int MathGrade, int PhysicsGrade, int RussianGrade, int LiteratureGrade)[]
+            {
+                ("Іван Іванов", "10-А", "123456789", 5, 4, 2, 4),
+                ("Марія Петрівна", "10-Б", "987654321", 3, 4, 4, 4),
+                ("Олег Олегович", "9-А", "555555555", 2, 3, 5, 5)
+            };
+
+            // Видалення школярів з оцінкою 2 хоча б по одному предмету
+            schoolboys = schoolboys.Where(s => s.MathGrade != 2 && s.PhysicsGrade != 2 && s.RussianGrade != 2 && s.LiteratureGrade != 2).ToArray();
+
+            // Додавання нового елемента на початок масиву
+            var newSchoolboy = ("Анатолій Антонов", "11-А", "123123123", 4, 4, 3, 5); // Новий школяр
+            schoolboys = new[] { newSchoolboy }.Concat(schoolboys).ToArray(); // Додаємо нового школяра(кортеж) на початок масиву
+
+            // Виведення результатів
+            Console.WriteLine("Школярі після модифікації:");
+            foreach (var schoolboy in schoolboys)
+            {
+                Console.WriteLine($"Прізвище, ім'я, по батькові: {schoolboy.FullName}, Клас: {schoolboy.Class}, Телефон: {schoolboy.PhoneNumber}");
+                Console.WriteLine($"Оцінки: Математика: {schoolboy.MathGrade}, Фізика: {schoolboy.PhysicsGrade}, Російська мова: {schoolboy.RussianGrade}, Література: {schoolboy.LiteratureGrade}");
+                Console.WriteLine();
+            }
         }
-
-        schoolboys = schoolboys.Where(s => s.Item4 != 2 && s.Item5 != 2 && s.Item6 != 2 && s.Item7 != 2).ToArray();
-
-        var newStudent = ("Анатолій Антонов", "11-А", "123123123", 4, 4, 3, 5);
-        ValidateGrades(newStudent.Item4, newStudent.Item5, newStudent.Item6, newStudent.Item7);
-        schoolboys = new[] { newStudent }.Concat(schoolboys).ToArray();
-
-        Console.WriteLine("Школярі після модифікації:");
-        foreach (var s in schoolboys)
+        catch (OverflowException ex)
         {
-            Console.WriteLine($"{s.Item1}, {s.Item2}, {s.Item3}, Оцінки: {s.Item4}, {s.Item5}, {s.Item6}, {s.Item7}");
+            Console.WriteLine($"Помилка переповнення в кортежах: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Помилка при роботі з кортежами: {ex.Message}");
         }
     }
 
+    // Реалізація через записи
     static void RunWithRecords()
     {
-        Console.WriteLine("Вибір: Записи");
-
-        var schoolboys = new[]
+        try
         {
-            new SchoolboyRecord("Іван Іванов", "10-А", "123456789", 5, 4, 2, 4),
-            new SchoolboyRecord("Марія Петрівна", "10-Б", "987654321", 3, 4, 4, 4),
-            new SchoolboyRecord("Олег Олегович", "9-А", "555555555", 2, 3, 5, 5)
-        };
+            Console.WriteLine("Вибір: Записи");
 
-        foreach (var s in schoolboys)
-        {
-            ValidateGrades(s.MathGrade, s.PhysicsGrade, s.RussianGrade, s.LiteratureGrade);
+            // Введення масиву школярів у вигляді записів
+            var schoolboys = new[]
+            {
+                new SchoolboyRecord("Іван Іванов", "10-А", "123456789", 5, 4, 2, 4),
+                new SchoolboyRecord("Марія Петрівна", "10-Б", "987654321", 3, 4, 4, 4),
+                new SchoolboyRecord("Олег Олегович", "9-А", "555555555", 2, 3, 5, 5)
+            };
+
+            // Видалення школярів з оцінкою 2 хоча б по одному предмету
+            schoolboys = schoolboys.Where(s => s.MathGrade != 2 && s.PhysicsGrade != 2 && s.RussianGrade != 2 && s.LiteratureGrade != 2).ToArray();
+
+            // Додавання нового елемента на початок масиву
+            var newSchoolboy = new SchoolboyRecord("Анатолій Антонов", "11-А", "123123123", 4, 4, 3, 5);
+            schoolboys = new[] { newSchoolboy }.Concat(schoolboys).ToArray();
+
+            // Виведення результатів
+            Console.WriteLine("Школярі після модифікації:");
+            foreach (var schoolboy in schoolboys)
+            {
+                Console.WriteLine($"Прізвище, ім'я, по батькові: {schoolboy.FullName}, Клас: {schoolboy.Class}, Телефон: {schoolboy.PhoneNumber}");
+                Console.WriteLine($"Оцінки: Математика: {schoolboy.MathGrade}, Фізика: {schoolboy.PhysicsGrade}, Російська мова: {schoolboy.RussianGrade}, Література: {schoolboy.LiteratureGrade}");
+                Console.WriteLine();
+            }
         }
-
-        schoolboys = schoolboys.Where(s => s.MathGrade != 2 && s.PhysicsGrade != 2 && s.RussianGrade != 2 && s.LiteratureGrade != 2).ToArray();
-
-        var newStudent = new SchoolboyRecord("Анатолій Антонов", "11-А", "123123123", 4, 4, 3, 5);
-        ValidateGrades(newStudent.MathGrade, newStudent.PhysicsGrade, newStudent.RussianGrade, newStudent.LiteratureGrade);
-        schoolboys = new[] { newStudent }.Concat(schoolboys).ToArray();
-
-        Console.WriteLine("Школярі після модифікації:");
-        foreach (var s in schoolboys)
+        catch (OverflowException ex)
         {
-            Console.WriteLine($"{s.FullName}, {s.Class}, {s.PhoneNumber}, Оцінки: {s.MathGrade}, {s.PhysicsGrade}, {s.RussianGrade}, {s.LiteratureGrade}");
+            Console.WriteLine($"Помилка переповнення в записах: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Помилка при роботі з записами: {ex.Message}");
         }
     }
 }
 
+// Структура для варіанту з використанням структур
 struct SchoolboyStruct
 {
     public string FullName;
@@ -165,7 +182,6 @@ struct SchoolboyStruct
     public int PhysicsGrade;
     public int RussianGrade;
     public int LiteratureGrade;
-
     public SchoolboyStruct(string fullName, string className, string phoneNumber, int mathGrade, int physicsGrade, int russianGrade, int literatureGrade)
     {
         FullName = fullName;
@@ -178,4 +194,5 @@ struct SchoolboyStruct
     }
 }
 
+// Запис для варіанту з використанням записів
 record SchoolboyRecord(string FullName, string Class, string PhoneNumber, int MathGrade, int PhysicsGrade, int RussianGrade, int LiteratureGrade);
